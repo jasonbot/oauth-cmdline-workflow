@@ -8,20 +8,6 @@ import "runtime"
 import "strings"
 import "time"
 
-type AGOLogin struct {
-	Addr string
-}
-
-func (self *AGOLogin) FirstURL() string {
-	return "http://127.0.0.1:8088"
-}
-
-func (self *AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
-	response := "Hello"
-	writer.Write([]byte(response))
-	fmt.Println("HI", req.URL.Query().Get("code"))
-}
-
 func _webServer(token_chan, error_chan chan string, port uint32) {
 	addr := fmt.Sprintf("127.0.0.1:%v", port)
 
@@ -64,6 +50,12 @@ func OpenBrowser(url string, error_channel chan string) {
 	if err != nil {
 		error_channel <- fmt.Sprintf("Error opening browser: %v", err.Error())
 	}
+}
+
+func OpenLocalhostBrowser(port uint32, error_chan chan string) {
+	addr := fmt.Sprintf("http://127.0.0.1:%v", port)
+
+	OpenBrowser(addr, error_chan)
 }
 
 func WaitForToken(token_chan, error_chan chan string, timeout time.Duration) {
