@@ -1,11 +1,14 @@
 package oauthworkflow
 
+import "fmt"
+import "net/http"
+
 type AGOLogin struct {
-	Addr string
+	Port uint32
 }
 
 func (self *AGOLogin) FirstURL() string {
-	return "http://127.0.0.1:8088"
+	return fmt.Sprintf("http://127.0.0.1:%v", self.Port)
 }
 
 func (self *AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {

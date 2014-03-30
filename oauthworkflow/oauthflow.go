@@ -8,12 +8,19 @@ import "runtime"
 import "strings"
 import "time"
 
-func _webServer(token_chan, error_chan chan string, port uint32) {
+type OAuthFlow interface {
+	InitializeOAuthFlow(port uint32, success chan string, error chan string)
+	FirstURL() string
+	http.Handler
+}
+
+func _webServer(token_chan, error_chan chan string,
+	port uint32, flow OAuthFlow) {
 	addr := fmt.Sprintf("127.0.0.1:%v", port)
 
 	server := &http.Server{
 		Addr:           addr,
-		Handler:        &AGOLogin{Addr: addr},
+		Handler:        flow,
 		ReadTimeout:    5 * time.Second,
 		WriteTimeout:   5 * time.Second,
 		MaxHeaderBytes: 1 << 20,
@@ -24,8 +31,9 @@ func _webServer(token_chan, error_chan chan string, port uint32) {
 	}
 }
 
-func StartWebServer(token_chan, error_chan chan string, port uint32) {
-	go _webServer(token_chan, error_chan, port)
+func StartWebServer(token_chan, error_chan chan string, port uint32,
+	flow OAuthFlow) {
+	go _webServer(token_chan, error_chan, port, flow)
 }
 
 func OpenBrowser(url string, error_channel chan string) {
@@ -69,10 +77,4 @@ func WaitForToken(token_chan, error_chan chan string, timeout time.Duration) {
 		// Timed out (default)
 		fmt.Fprintln(os.Stderr, "Error: OAuth handshake timed out")
 	}
-}
-
-type OAuthFlow interface {
-	InitializeOAuthFlow(port uint32, success chan string, error chan string)
-	FirstURL() string
-	http.Handler
 }
