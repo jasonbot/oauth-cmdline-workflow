@@ -45,6 +45,17 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 			grant_type=authorization_code&
 			code=CODE_OBTAINED_IN_THE_PREVIOUS_STEP */
 
+			resp, err := http.PostForm("https://www.arcgis.com/sharing/oauth2/token",
+					url.Values{"client_id": {self.APPID},
+						   "client_secret": {self.APPSECRET},
+						   "grant_type": {"authorization_code"},
+						   "code": {code}})
+			
+			if (err != nil) {
+				self.error <- err.Error()
+				return
+			}
+
 			response := "You are now logged in. You can close this window."
 			writer.Write([]byte(response))
 
@@ -60,9 +71,9 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 			self.error <- error
 		}
 
-		http.Redirect(writer, req, self.FirstURL(), 303)
+		http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
 
 	} else {
-		http.Redirect(writer, req, self.FirstURL(), 303)
+		http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
 	}
 }
