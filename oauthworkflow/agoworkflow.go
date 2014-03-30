@@ -26,11 +26,24 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	} else if req.URL.Path == "/gotLogin" {
 		code := req.URL.Query().Get("code")
 		if code != "" {
+			response := "You are now logged in."
+			writer.Write([]byte(response))
 
+			self.success <- code
 		}
+
+		error := req.URL.Query().Get("error")
+
+		if error != "" {
+			response := fmt.Sprintf("Error logging in: %v.", error)
+			writer.Write([]byte(response))
+
+			self.error <- error
+		}
+
+		http.Redirect(writer, req, "/", 303)
+
 	} else {
-		response := "WHAT?"
-		writer.Write([]byte(response))
-		fmt.Println("HI", req.URL.Query().Get("code"))
+		http.Redirect(writer, req, "/", 303)
 	}
 }
