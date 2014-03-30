@@ -18,6 +18,8 @@ func _webServer(token_chan, error_chan chan string,
 	port uint32, flow OAuthFlow) {
 	addr := fmt.Sprintf("127.0.0.1:%v", port)
 
+	flow.InitializeOAuthFlow(port, token_chan, error_chan)
+
 	server := &http.Server{
 		Addr:           addr,
 		Handler:        flow,
