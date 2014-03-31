@@ -62,12 +62,6 @@ func OpenBrowser(url string, error_channel chan string) {
 	}
 }
 
-func OpenLocalhostBrowser(port uint32, error_chan chan string) {
-	addr := fmt.Sprintf("http://127.0.0.1:%v", port)
-
-	OpenBrowser(addr, error_chan)
-}
-
 func WaitForToken(token_chan, error_chan chan string, timeout time.Duration) {
 	select {
 	case v := <-token_chan:
