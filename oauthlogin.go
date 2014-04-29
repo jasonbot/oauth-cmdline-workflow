@@ -13,7 +13,7 @@ func main() {
 	timeout := 5 * time.Second
 
 	agoflow := oauthworkflow.AGOLogin{}
-	oauthworkflow.StartWebServer(oauth_token_channel, failure_channel, 8088,
+	oauthworkflow.StartWebServer(oauth_token_channel, failure_channel, port,
 		agoflow)
 	oauthworkflow.OpenLocalhostBrowser(agoflow.FirstURL(), failure_channel)
 	oauthworkflow.WaitForToken(oauth_token_channel, failure_channel, timeout)
