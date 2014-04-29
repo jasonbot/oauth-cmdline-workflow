@@ -10,7 +10,7 @@ func main() {
 	var port uint32 = 8327
 
 	timeout := 5 * time.Second
-	agoflow := oauthworkflow.AGOLogin{}
+	agoflow := oauthworkflow.MakeAGOFlow("", "")
 
 	success, error := oauthworkflow.FullOAuthHandshake(agoflow, timeout,
 		port)

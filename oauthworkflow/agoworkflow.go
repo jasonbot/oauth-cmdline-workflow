@@ -13,6 +13,11 @@ type AGOLogin struct {
 	Error     chan string
 }
 
+func MakeAGOFlow(APPID, APPSECRET string) OAuthFlow {
+	flow := AGOLogin{APPID: APPID, APPSECRET: APPSECRET}
+	return flow
+}
+
 func (self AGOLogin) InitializeOAuthFlow(port uint32, success chan string,
 	error chan string) {
 	self.Port = port
