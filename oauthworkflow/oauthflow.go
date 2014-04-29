@@ -2,7 +2,6 @@ package oauthworkflow
 
 import "fmt"
 import "net/http"
-import "os"
 import "os/exec"
 import "runtime"
 import "strings"
@@ -62,15 +61,25 @@ func OpenBrowser(url string, error_channel chan string) {
 	}
 }
 
-func WaitForToken(token_chan, error_chan chan string, timeout time.Duration) {
+func WaitForToken(token_chan, error_chan chan string, timeout time.Duration) (string, string) {
 	select {
 	case v := <-token_chan:
 		// Web server successfully got a token response
-		fmt.Print(v)
+		return v, ""
 	case err := <-error_chan:
-		fmt.Fprintln(os.Stderr, fmt.Sprintf("Error: %v", err))
+		return "", fmt.Sprintf(fmt.Sprintf("Error: %v", err))
 	case <-time.After(timeout):
 		// Timed out (default)
-		fmt.Fprintln(os.Stderr, "Error: OAuth handshake timed out")
+		return "", "Error: OAuth handshake timed out"
 	}
+}
+
+func FullOAuthHandshake(flow OAuthFlow, timeout time.Duration, port uint32) (string, string) {
+	oauth_token_channel := make(chan string)
+	failure_channel := make(chan string)
+
+	StartWebServer(oauth_token_channel, failure_channel, port,
+		flow)
+	OpenBrowser(flow.FirstURL(), failure_channel)
+	return WaitForToken(oauth_token_channel, failure_channel, timeout)
 }
