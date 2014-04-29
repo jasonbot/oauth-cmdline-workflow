@@ -28,48 +28,46 @@ func (self AGOLogin) FirstURL() string {
 }
 
 func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	error_string := ""
 	if req.URL.Path == "/gotLogin" {
 		code := req.URL.Query().Get("code")
 		if code != "" {
-			resp, err := http.PostForm("https://www.arcgis.com/sharing/oauth2/token",
+			resp, post_err := http.PostForm("https://www.arcgis.com/sharing/oauth2/token",
 				url.Values{
 					"client_id":     {self.APPID},
 					"client_secret": {self.APPSECRET},
 					"grant_type":    {"authorization_code"},
 					"code":          {code}})
 
-			if err != nil {
-				auth_code, _ := ioutil.ReadAll(resp.Body)
-			resp, err := http.PostForm("https://www.arcgis.com/sharing/oauth2/token",
-					url.Values{"client_id": {self.APPID},
-						   "client_secret": {self.APPSECRET},
-						   "grant_type": {"authorization_code"},
-						   "code": {code}})
-			
-			if (err != nil) {
-				self.error <- err.Error()
-				return
-			}
+			if post_err != nil {
+				auth_code, newerror := ioutil.ReadAll(resp.Body)
 
-				response := "You are now logged in. You can close this window."
-				writer.Write([]byte(response))
-				self.Success <- string(auth_code)
+				if newerror != nil {
+					error_string = newerror.Error()
+				} else {
+					response := "You are now logged in. You can close this window."
+					writer.Write([]byte(response))
+					self.Success <- string(auth_code)
 
-				return
+					return
+				}
+			} else {
+				error_string = post_err.Error()
 			}
 		}
 
-		error := req.URL.Query().Get("error")
+		if error_string == "" {
+			error_string = req.URL.Query().Get("error")
+		}
 
-		if error != "" {
-			response := fmt.Sprintf("Error logging in: %v.", error)
+		if error_string != "" {
+			response := fmt.Sprintf("Error logging in: %v.", error_string)
 			writer.Write([]byte(response))
 
-			self.Error <- error
+			self.Error <- error_string
 		}
 
 		http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
-
 	} else {
 		http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
 	}
