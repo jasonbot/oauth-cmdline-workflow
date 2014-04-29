@@ -31,20 +31,6 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "/gotLogin" {
 		code := req.URL.Query().Get("code")
 		if code != "" {
-			// TODO
-			/* Access token
-
-			Once the authorization code has been obtained, the app needs to exchange it for an access token.
-
-			The actual request is a POST request to the /token endpoint for the portal, shown here for arcgis.com:
-
-			https://www.arcgis.com/sharing/oauth2/token
-			All the parameters (in the following example) must be sent in the request body and not as part of the query component of the URI.
-
-			client_id=APPID&
-			client_secret=APPSECRET&
-			grant_type=authorization_code&
-			code=CODE_OBTAINED_IN_THE_PREVIOUS_STEP */
 			resp, err := http.PostForm("https://www.arcgis.com/sharing/oauth2/token",
 				url.Values{
 					"client_id":     {self.APPID},
@@ -60,7 +46,6 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 				return
 			}
-
 		}
 
 		error := req.URL.Query().Get("error")
