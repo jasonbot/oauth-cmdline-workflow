@@ -45,6 +45,8 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 				if newerror != nil {
 					error_string = newerror.Error()
 				} else {
+					headers := writer.Header()
+					headers.Set("Content-Type", "text/plain")
 					response := "You are now logged in. You can close this window."
 					writer.Write([]byte(response))
 					self.Success <- string(auth_code)
@@ -61,13 +63,15 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 		}
 
 		if error_string != "" {
+			headers := writer.Header()
+			headers.Set("Content-Type", "text/plain")
 			response := fmt.Sprintf("Error logging in: %v.", error_string)
 			writer.Write([]byte(response))
 
 			self.Error <- error_string
+		} else {
+			http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
 		}
-
-		http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
 	} else {
 		http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
 	}
