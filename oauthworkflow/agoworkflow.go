@@ -1,26 +1,27 @@
 package oauthworkflow
 
 import "fmt"
+import "io/ioutil"
 import "net/http"
 import "net/url"
 
 type AGOLogin struct {
 	APPID     string
 	APPSECRET string
-	port      uint32
-	success   chan string
-	error     chan string
+	Port      uint32
+	Success   chan string
+	Error     chan string
 }
 
 func (self AGOLogin) InitializeOAuthFlow(port uint32, success chan string,
 	error chan string) {
-	self.port = port
-	self.success = success
-	self.error = error
+	self.Port = port
+	self.Success = success
+	self.Error = error
 }
 
 func (self AGOLogin) FirstURL() string {
-	redirect_uri := url.QueryEscape(fmt.Sprintf("http://127.0.0.1:%v/gotLogin", self.port))
+	redirect_uri := url.QueryEscape(fmt.Sprintf("http://127.0.0.1:%v/gotLogin", self.Port))
 	url := fmt.Sprintf("https://www.arcgis.com/sharing/oauth2/authorize?client_id=%v&response_type=code&redirect_uri=%v", self.APPID, redirect_uri)
 
 	return url
@@ -44,11 +45,22 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 			client_secret=APPSECRET&
 			grant_type=authorization_code&
 			code=CODE_OBTAINED_IN_THE_PREVIOUS_STEP */
+			resp, err := http.PostForm("https://www.arcgis.com/sharing/oauth2/token",
+				url.Values{
+					"client_id":     {self.APPID},
+					"client_secret": {self.APPSECRET},
+					"grant_type":    {"authorization_code"},
+					"code":          {code}})
 
-			response := "You are now logged in. You can close this window."
-			writer.Write([]byte(response))
+			if err != nil {
+				auth_code, _ := ioutil.ReadAll(resp.Body)
+				response := "You are now logged in. You can close this window."
+				writer.Write([]byte(response))
+				self.Success <- string(auth_code)
 
-			self.success <- code
+				return
+			}
+
 		}
 
 		error := req.URL.Query().Get("error")
@@ -57,7 +69,7 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 			response := fmt.Sprintf("Error logging in: %v.", error)
 			writer.Write([]byte(response))
 
-			self.error <- error
+			self.Error <- error
 		}
 
 		http.Redirect(writer, req, self.FirstURL(), 303)
