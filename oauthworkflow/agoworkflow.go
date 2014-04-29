@@ -6,31 +6,31 @@ import "net/http"
 import "net/url"
 
 type AGOLogin struct {
-	APPID     string
-	APPSECRET string
-	Port      uint32
-	Success   chan string
-	Error     chan string
+	appid     string
+	appsecret string
+	port      uint32
+	success   chan string
+	error     chan string
 }
 
 func MakeAGOFlow(APPID, APPSECRET string) OAuthFlow {
-	flow := AGOLogin{APPID: APPID, APPSECRET: APPSECRET}
+	flow := AGOLogin{appid: APPID, appsecret: APPSECRET}
 	return flow
 }
 
 func (self AGOLogin) InitializeOAuthFlow(port uint32, success chan string,
 	error chan string) {
-	self.Port = port
-	self.Success = success
-	self.Error = error
+	self.port = port
+	self.success = success
+	self.error = error
 }
 
 func (self AGOLogin) FirstURL() string {
 	redirect_uri := url.QueryEscape(fmt.Sprintf("http://127.0.0.1:%v/gotLogin",
-		self.Port))
+		self.port))
 	url := fmt.Sprintf("https://www.arcgis.com/sharing/oauth2/authorize?"+
 		"client_id=%v&response_type=code&redirect_uri=%v",
-		self.APPID, redirect_uri)
+		self.appid, redirect_uri)
 
 	return url
 }
@@ -43,8 +43,8 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 			resp, post_err := http.PostForm("https://www.arcgis.com/sharing/"+
 				"oauth2/token",
 				url.Values{
-					"client_id":     {self.APPID},
-					"client_secret": {self.APPSECRET},
+					"client_id":     {self.appid},
+					"client_secret": {self.appsecret},
 					"grant_type":    {"authorization_code"},
 					"code":          {code}})
 
@@ -58,7 +58,7 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 					headers.Set("Content-Type", "text/plain")
 					response := "You are logged in. You can close this window."
 					writer.Write([]byte(response))
-					self.Success <- string(auth_code)
+					self.success <- string(auth_code)
 
 					return
 				}
@@ -77,7 +77,7 @@ func (self AGOLogin) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 			response := fmt.Sprintf("Error logging in: %v.", error_string)
 			writer.Write([]byte(response))
 
-			self.Error <- error_string
+			self.error <- error_string
 		} else {
 			http.Redirect(writer, req, self.FirstURL(), http.StatusSeeOther)
 		}
