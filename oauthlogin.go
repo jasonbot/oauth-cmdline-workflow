@@ -1,3 +1,4 @@
+// Command-line app that uses a hard-coded API ID/SECRET
 package main
 
 import "time"
@@ -8,16 +9,19 @@ import "./oauthworkflow"
 
 func main() {
 	var port uint32 = 8327
+	APPID, APPSECRET := "", ""
 
 	timeout := 5 * time.Second
-	agoflow := oauthworkflow.MakeAGOFlow("", "")
+	agoflow := oauthworkflow.MakeAGOFlow(APPID, APPSECRET)
 
 	success, error := oauthworkflow.FullOAuthHandshake(agoflow, timeout,
 		port)
 
 	if success != "" {
 		fmt.Print(success)
-	} else {
+	} else if error != "" {
 		fmt.Fprintln(os.Stderr, error)
+	} else {
+		fmt.Println(os.Stderr, "Unspecified error")
 	}
 }
