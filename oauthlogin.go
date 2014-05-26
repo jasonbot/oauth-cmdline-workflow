@@ -12,7 +12,7 @@ func main() {
 	APPID, APPSECRET := "", ""
 
 	timeout := 5 * time.Second
-	agoflow := oauthworkflow.MakeAGOFlow(APPID, APPSECRET)
+	agoflow := oauthworkflow.MakeAGOFlow(APPID, APPSECRET, port)
 
 	success, error := oauthworkflow.FullOAuthHandshake(agoflow, timeout,
 		port)

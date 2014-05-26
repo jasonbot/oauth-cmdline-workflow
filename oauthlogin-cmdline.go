@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	timeout := time.Duration(timeout_in_seconds) * time.Second
-	agoflow := oauthworkflow.MakeAGOFlow(APPID, APPSECRET)
+	agoflow := oauthworkflow.MakeAGOFlow(APPID, APPSECRET, uint32(port))
 
 	success, error := oauthworkflow.FullOAuthHandshake(agoflow, timeout,
 		uint32(port))
