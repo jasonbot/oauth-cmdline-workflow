@@ -13,7 +13,7 @@ type OAuthFlow interface {
 	http.Handler
 }
 
-func _webServer(token_chan, error_chan chan string,
+func webServer(token_chan, error_chan chan string,
 	port uint32, flow OAuthFlow) {
 	addr := fmt.Sprintf("127.0.0.1:%v", port)
 
@@ -34,7 +34,7 @@ func _webServer(token_chan, error_chan chan string,
 
 func StartWebServer(token_chan, error_chan chan string, port uint32,
 	flow OAuthFlow) {
-	go _webServer(token_chan, error_chan, port, flow)
+	go webServer(token_chan, error_chan, port, flow)
 }
 
 func OpenBrowser(url string, error_channel chan string) {
